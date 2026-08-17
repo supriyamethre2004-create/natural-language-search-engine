@@ -1,0 +1,75 @@
+[
+    {
+        "query": "What is self attention?",
+        "relevant_pages": [
+            {
+                "source": "Attention Is All You Need PDF.pdf",
+                "page": 2
+            },
+            {
+                "source": "Attention Is All You Need PDF.pdf",
+                "page": 3
+            },
+            {
+                "source": "Attention Is All You Need PDF.pdf",
+                "page": 6
+            }
+        ]
+    },
+    {
+        "query": "What is the Transformer architecture?",
+        "relevant_pages": [
+            {
+                "source": "Attention Is All You Need PDF.pdf",
+                "page": 3
+            },
+            {
+                "source": "Attention Is All You Need PDF.pdf",
+                "page": 5
+            }
+        ]
+    },
+    {
+        "query": "What is retrieval augmented generation?",
+        "relevant_pages": [
+            {
+                "source": "RAG PDF.pdf",
+                "page": 3
+            },
+            {
+                "source": "RAG PDF.pdf",
+                "page": 6
+            },
+            {
+                "source": "RAG PDF.pdf",
+                "page": 9
+            }
+        ]
+    },
+    {
+        "query": "How does RAG retrieve information?",
+        "relevant_pages": [
+            {
+                "source": "RAG PDF.pdf",
+                "page": 3
+            },
+            {
+                "source": "RAG PDF.pdf",
+                "page": 6
+            }
+        ]
+    },
+    {
+        "query": "How do transformers process sequences?",
+        "relevant_pages": [
+            {
+                "source": "Attention Is All You Need PDF.pdf",
+                "page": 2
+            },
+            {
+                "source": "Attention Is All You Need PDF.pdf",
+                "page": 5
+            }
+        ]
+    }
+]
