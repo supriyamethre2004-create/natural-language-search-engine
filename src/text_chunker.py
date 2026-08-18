@@ -9,7 +9,11 @@ def clean_text(text):
     # Remove common PDF/tokenizer artifacts
     text = re.sub(r"<EOS>|<pad>", " ", text)
 
-    # Remove excessive whitespace
+    # Join words broken by PDF line wrapping, e.g.:
+    # "atten-\ntion" -> "attention"
+    text = re.sub(r"-\s*\n\s*", "", text)
+
+    # Replace newlines with spaces
     text = re.sub(r"\s+", " ", text)
 
     # Remove spaces before punctuation
@@ -18,14 +22,25 @@ def clean_text(text):
     return text.strip()
 
 
-def chunk_pages(pages, chunk_size=1000, overlap=200):
+def split_into_sentences(text):
     """
-    Split extracted PDF text into smaller overlapping chunks.
+    Split cleaned text into sentences.
+    """
+
+    sentences = re.split(r"(?<=[.!?])\s+", text)
+
+    return [sentence.strip() for sentence in sentences if sentence.strip()]
+
+
+def chunk_pages(pages, chunk_size=600, overlap=100):
+    """
+    Split extracted PDF text into overlapping, sentence-aware chunks.
     """
 
     chunks = []
 
     for page in pages:
+
         text = clean_text(page["text"])
         page_number = page["page"]
 
@@ -33,26 +48,46 @@ def chunk_pages(pages, chunk_size=1000, overlap=200):
         if len(text) < 100:
             continue
 
-        start = 0
+        sentences = split_into_sentences(text)
 
-        while start < len(text):
-            end = start + chunk_size
+        current_chunk = ""
 
-            chunk_text = text[start:end].strip()
+        for sentence in sentences:
 
-            # Ignore very short chunks
-            if len(chunk_text) >= 100:
-                chunks.append({
-                    "page": page_number,
-                    "text": chunk_text
-                })
+            # If adding the next sentence stays within the target size
+            if len(current_chunk) + len(sentence) + 1 <= chunk_size:
 
-            start += chunk_size - overlap
+                if current_chunk:
+                    current_chunk += " " + sentence
+                else:
+                    current_chunk = sentence
+
+            else:
+
+                # Save current chunk
+                if len(current_chunk) >= 100:
+                    chunks.append({
+                        "page": page_number,
+                        "text": current_chunk
+                    })
+
+                # Create overlap using the end of the previous chunk
+                overlap_text = current_chunk[-overlap:] if current_chunk else ""
+
+                current_chunk = overlap_text + " " + sentence
+
+        # Save final chunk
+        if len(current_chunk.strip()) >= 100:
+            chunks.append({
+                "page": page_number,
+                "text": current_chunk.strip()
+            })
 
     return chunks
 
 
 if __name__ == "__main__":
+
     from document_loader import extract_text_from_pdf
 
     pdf_path = "data/raw/Attention Is All You Need PDF.pdf"

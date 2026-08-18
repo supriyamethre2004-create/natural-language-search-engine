@@ -18,22 +18,35 @@ def load_data():
     return data
 
 
+def normalize_scores(scores):
+    """Normalize scores between 0 and 1."""
+
+    minimum = scores.min()
+    maximum = scores.max()
+
+    if maximum == minimum:
+        return scores
+
+    return (scores - minimum) / (maximum - minimum)
+
+
 def search(query, top_k=5):
-    """Find relevant chunks using semantic search and BM25."""
+    """Find relevant chunks using semantic search with BM25 support."""
 
     print("Loading embedding model...")
 
-    # Load embedding model
     model = SentenceTransformer("all-MiniLM-L6-v2")
 
-    # Load document data
     data = load_data()
 
     # -----------------------------
     # Semantic Search
     # -----------------------------
 
-    query_embedding = model.encode([query])
+    query_embedding = model.encode(
+        [query],
+        normalize_embeddings=True
+    )
 
     document_embeddings = [
         item["embedding"]
@@ -60,26 +73,14 @@ def search(query, top_k=5):
 
     bm25_scores = bm25.get_scores(tokenized_query)
 
-    # -----------------------------
-    # Normalize BM25 scores
-    # -----------------------------
-
-    if bm25_scores.max() > bm25_scores.min():
-
-        normalized_bm25 = (
-            (bm25_scores - bm25_scores.min())
-            / (bm25_scores.max() - bm25_scores.min())
-        )
-
-    else:
-        normalized_bm25 = bm25_scores
+    normalized_bm25 = normalize_scores(bm25_scores)
 
     # -----------------------------
-    # Combine scores
+    # Hybrid Ranking
     # -----------------------------
 
-    semantic_weight = 0.9
-    bm25_weight = 0.1
+    semantic_weight = 0.95
+    bm25_weight = 0.05
 
     combined_scores = (
         semantic_weight * semantic_scores
@@ -87,7 +88,7 @@ def search(query, top_k=5):
     )
 
     # -----------------------------
-    # Rank results
+    # Rank Results
     # -----------------------------
 
     ranked_indices = combined_scores.argsort()[::-1][:top_k]
